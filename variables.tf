@@ -10,3 +10,9 @@ variable "name" {
   type        = string
   default     = "app-16"
 }
+
+variable "domain_name" {
+  description = "The domain name for the website"
+  type        = string
+  default     = "kunduso.com"
+}
