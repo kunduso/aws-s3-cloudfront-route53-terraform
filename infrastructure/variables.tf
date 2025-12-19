@@ -4,6 +4,7 @@ variable "region" {
   type        = string
   default     = "us-east-2"
 }
+
 #application name
 variable "name" {
   description = "The name of the application."

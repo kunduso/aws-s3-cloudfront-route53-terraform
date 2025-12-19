@@ -1,11 +1,6 @@
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone
-resource "aws_route53_zone" "main" {
-  name = var.domain_name
-}
-
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record
 resource "aws_route53_record" "root" {
-  zone_id = aws_route53_zone.main.zone_id
+  zone_id = data.aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"
 
@@ -18,7 +13,7 @@ resource "aws_route53_record" "root" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record
 resource "aws_route53_record" "www" {
-  zone_id = aws_route53_zone.main.zone_id
+  zone_id = data.aws_route53_zone.main.zone_id
   name    = "www.${var.domain_name}"
   type    = "A"
 
