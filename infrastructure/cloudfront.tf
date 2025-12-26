@@ -21,8 +21,8 @@ resource "aws_cloudfront_distribution" "website" {
 
   # CloudFront access logging
   logging_config {
-    bucket          = aws_s3_bucket.cloudfront_logs.bucket_domain_name
-    prefix          = "cloudfront-logs/"
+    bucket          = aws_s3_bucket.cloudfront_ops.bucket_domain_name
+    prefix          = "logs/"
     include_cookies = false
   }
 
