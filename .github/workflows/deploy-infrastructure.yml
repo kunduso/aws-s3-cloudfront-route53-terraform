@@ -1,22 +1,22 @@
-name: deploy-dns
+name: deploy-infrastructure
 
 on:
   push:
     branches: [ '*' ]
     paths:
-      - 'dns/**'
-      - '.github/workflows/deploy-dns.yml'
+      - 'infrastructure/**'
+      - '.github/workflows/deploy-infrastructure.yml'
   pull_request:
     branches: ["main"]
     paths:
-      - 'dns/**'
-      - '.github/workflows/deploy-dns.yml'
+      - 'infrastructure/**'
+      - '.github/workflows/deploy-infrastructure.yml'
 
 permissions: read-all
 
 jobs:
-  deploy-dns:
-    name: 'deploy-dns-infrastructure'
+  deploy-infrastructure:
+    name: 'deploy-website-infrastructure'
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -26,7 +26,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./dns
+        working-directory: ./infrastructure
 
     steps:
     - name: Checkout
@@ -36,35 +36,48 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: ${{ secrets.IAM_ROLE }}
-        role-session-name: DNSSession
+        role-session-name: InfraSession
         aws-region: us-east-2
+
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v2
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      id: init
       run: terraform init
 
-    # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
-      id: fmt
-      if: github.event_name == 'pull_request'
       run: terraform fmt -check
 
-    # Checks that all Terraform configuration files are correctly written
     - name: Terraform Validate
-      id: validate
-      if: github.event_name == 'pull_request'
       run: terraform validate -no-color
 
-    # Generates an execution plan for Terraform
     - name: Terraform Plan
       id: plan
       if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
         terraform plan -no-color -input=false -out=TFplan.JSON
+
+    - name: Generate Infracost diff
+      if: github.event_name == 'pull_request'
+      run: |
+        infracost diff --path=TFplan.JSON \
+                        --format=json \
+                        --out-file=/tmp/infracost.json
+
+    - name: Post Infracost comment
+      if: github.event_name == 'pull_request'
+      run: |
+          infracost comment github --path=/tmp/infracost.json \
+                                    --repo=$GITHUB_REPOSITORY \
+                                    --github-token=${{github.token}} \
+                                    --pull-request=${{github.event.pull_request.number}} \
+                                    --show-skipped \
+                                    --behavior=update
 
     - name: Post Terraform Plan Output
       uses: actions/github-script@v6
@@ -99,3 +112,9 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -input=false
+
+    - name: Display Outputs
+      run: |
+        echo "## 🚀 Infrastructure Deployed Successfully"
+        echo "CloudFront Domain: $(terraform output -raw cloudfront_domain)"
+        echo "S3 Bucket: $(terraform output -raw s3_bucket_name)"
