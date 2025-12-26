@@ -67,9 +67,6 @@ data "aws_iam_policy_document" "s3_key_policy" {
   }
 }
 
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity
-data "aws_caller_identity" "current" {}
-
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
 resource "aws_s3_bucket" "website" {
   bucket = "${var.name}-static-website-${random_string.bucket_suffix.result}"
