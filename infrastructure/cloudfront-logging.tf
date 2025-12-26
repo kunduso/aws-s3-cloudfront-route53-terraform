@@ -1,11 +1,11 @@
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
-resource "aws_s3_bucket" "cloudfront_logs" {
-  bucket = "${var.name}-cloudfront-logs-${random_string.bucket_suffix.result}"
+resource "aws_s3_bucket" "cloudfront_ops" {
+  bucket = "${var.name}-cloudfront-ops-${random_string.bucket_suffix.result}"
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
-resource "aws_s3_bucket_public_access_block" "cloudfront_logs" {
-  bucket = aws_s3_bucket.cloudfront_logs.id
+resource "aws_s3_bucket_public_access_block" "cloudfront_ops" {
+  bucket = aws_s3_bucket.cloudfront_ops.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -14,8 +14,8 @@ resource "aws_s3_bucket_public_access_block" "cloudfront_logs" {
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
-resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_logs" {
-  bucket = aws_s3_bucket.cloudfront_logs.id
+resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_ops" {
+  bucket = aws_s3_bucket.cloudfront_ops.id
 
   rule {
     id     = "manage_log_files"
