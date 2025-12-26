@@ -124,7 +124,7 @@ resource "aws_s3_bucket_versioning" "website" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
 resource "aws_s3_bucket_lifecycle_configuration" "website" {
-  bucket = aws_s3_bucket.website.id
+  bucket     = aws_s3_bucket.website.id
   depends_on = [aws_s3_bucket_versioning.website]
 
   rule {
