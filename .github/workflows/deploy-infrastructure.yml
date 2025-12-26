@@ -61,7 +61,6 @@ jobs:
       if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
         terraform plan -no-color -input=false -out=TFplan.JSON
-      continue-on-error: true
 
     - name: Generate Infracost diff
       if: github.event_name == 'pull_request'
