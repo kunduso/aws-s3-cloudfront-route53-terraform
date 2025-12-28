@@ -21,6 +21,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_ops" {
     id     = "manage_log_files"
     status = "Enabled"
 
+    filter {
+      prefix = "logs/"
+    }
+
     # Move logs to cheaper storage classes over time
     transition {
       days          = 30
@@ -38,6 +42,20 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_ops" {
     }
 
     # Clean up incomplete multipart uploads
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  rule {
+    id     = "manage_error_pages"
+    status = "Enabled"
+
+    filter {
+      prefix = "error-pages/"
+    }
+
+    # Keep error pages indefinitely, but clean up incomplete uploads
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
     }

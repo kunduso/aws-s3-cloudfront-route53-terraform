@@ -15,6 +15,14 @@ resource "aws_cloudfront_distribution" "website" {
     origin_id                = "S3-${aws_s3_bucket.website.bucket}"
   }
 
+  # Error pages origin
+  origin {
+    domain_name              = aws_s3_bucket.cloudfront_ops.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.website.id
+    origin_id                = "S3-${aws_s3_bucket.cloudfront_ops.bucket}"
+    origin_path              = "/error-pages"
+  }
+
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -47,6 +55,25 @@ resource "aws_cloudfront_distribution" "website" {
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
+
+  # Custom error pages
+  custom_error_response {
+    error_code         = 404
+    response_code      = 404
+    response_page_path = "/404.html"
+  }
+
+  custom_error_response {
+    error_code         = 403
+    response_code      = 404
+    response_page_path = "/404.html"
+  }
+
+  custom_error_response {
+    error_code         = 500
+    response_code      = 500
+    response_page_path = "/500.html"
+  }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
@@ -68,8 +95,33 @@ data "aws_iam_policy_document" "s3_bucket_policy" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
+data "aws_iam_policy_document" "cloudfront_ops_bucket_policy" {
+  statement {
+    sid    = "AllowCloudFrontServicePrincipal"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.cloudfront_ops.arn}/error-pages/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.website.arn]
+    }
+  }
+}
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy
 resource "aws_s3_bucket_policy" "website" {
   bucket = aws_s3_bucket.website.id
   policy = data.aws_iam_policy_document.s3_bucket_policy.json
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy
+resource "aws_s3_bucket_policy" "cloudfront_ops" {
+  bucket = aws_s3_bucket.cloudfront_ops.id
+  policy = data.aws_iam_policy_document.cloudfront_ops_bucket_policy.json
 }
