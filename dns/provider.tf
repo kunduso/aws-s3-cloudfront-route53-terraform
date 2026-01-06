@@ -22,7 +22,7 @@ provider "aws" {
   region = "us-east-1"
   default_tags {
     tags = {
-      Source = "https://github.com/kunduso/add-aws-elb-ec2-private-subnet-terraform"
+      Source = "https://github.com/kunduso/aws-s3-cloudfront-route53-terraform"
     }
   }
 }
