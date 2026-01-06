@@ -16,7 +16,7 @@ provider "aws" {
     }
   }
 }
-# Provider for us-east-1 (required for DNS query logging)
+# Provider for us-east-1 (required for DNSSEC operations)
 provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"
