@@ -16,3 +16,13 @@ provider "aws" {
     }
   }
 }
+# Provider for us-east-1 (required for DNSSEC operations)
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+  default_tags {
+    tags = {
+      Source = "https://github.com/kunduso/aws-s3-cloudfront-route53-terraform"
+    }
+  }
+}
