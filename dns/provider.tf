@@ -16,3 +16,13 @@ provider "aws" {
     }
   }
 }
+# Provider for us-east-1 (required for DNS query logging)
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+  default_tags {
+    tags = {
+      Source = "https://github.com/kunduso/add-aws-elb-ec2-private-subnet-terraform"
+    }
+  }
+}
