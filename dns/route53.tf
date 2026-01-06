@@ -52,7 +52,8 @@ resource "aws_kms_key_policy" "dnssec" {
           "kms:ScheduleKeyDeletion",
           "kms:CancelKeyDeletion",
           "kms:TagResource",
-          "kms:UntagResource"
+          "kms:UntagResource",
+          "kms:Sign"
         ]
         Resource = [aws_kms_key.dnssec.arn]
       },
