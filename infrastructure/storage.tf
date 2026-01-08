@@ -7,7 +7,7 @@ resource "aws_kms_key" "s3_key" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias
 resource "aws_kms_alias" "s3_key_alias" {
-  name          = "alias/${var.name}-s3-key"
+  name          = "alias/${var.name}-encrypt-s3"
   target_key_id = aws_kms_key.s3_key.key_id
 }
 
