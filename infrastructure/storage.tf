@@ -7,7 +7,7 @@ resource "aws_kms_key" "s3_key" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias
 resource "aws_kms_alias" "s3_key_alias" {
-  name          = "alias/${var.name}-s3-key"
+  name          = "alias/${var.name}-encrypt-s3"
   target_key_id = aws_kms_key.s3_key.key_id
 }
 
@@ -112,4 +112,45 @@ resource "aws_s3_bucket_public_access_block" "website" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
+resource "aws_s3_bucket_versioning" "website" {
+  bucket = aws_s3_bucket.website.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
+resource "aws_s3_bucket_lifecycle_configuration" "website" {
+  bucket     = aws_s3_bucket.website.id
+  depends_on = [aws_s3_bucket_versioning.website]
+
+  rule {
+    id     = "manage_old_versions"
+    status = "Enabled"
+
+    # Cost optimization transitions - COMMENTED OUT for simple static websites
+    # Uncomment these for enterprise/high-traffic sites to reduce storage costs
+    # noncurrent_version_transition {
+    #   noncurrent_days = 7
+    #   storage_class   = "STANDARD_IA"
+    # }
+    #
+    # noncurrent_version_transition {
+    #   noncurrent_days = 30
+    #   storage_class   = "GLACIER"
+    # }
+
+    # Keep old versions for 90 days for rollback capability
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+
+    # Clean up incomplete multipart uploads
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
 }
