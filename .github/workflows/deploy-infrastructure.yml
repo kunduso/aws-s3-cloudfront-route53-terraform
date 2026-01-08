@@ -112,9 +112,3 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -input=false
-
-    - name: Display Outputs
-      run: |
-        echo "## 🚀 Infrastructure Deployed Successfully"
-        echo "CloudFront Domain: $(terraform output -raw cloudfront_domain)"
-        echo "S3 Bucket: $(terraform output -raw s3_bucket_name)"
