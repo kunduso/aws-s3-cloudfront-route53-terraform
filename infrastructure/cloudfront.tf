@@ -72,19 +72,19 @@ resource "aws_cloudfront_distribution" "website" {
   custom_error_response {
     error_code         = 404
     response_code      = 404
-    response_page_path = "/404.html"
+    response_page_path = "/error-pages/404.html"
   }
 
   custom_error_response {
     error_code         = 403
     response_code      = 404
-    response_page_path = "/404.html"
+    response_page_path = "/error-pages/404.html"
   }
 
   custom_error_response {
     error_code         = 500
     response_code      = 500
-    response_page_path = "/500.html"
+    response_page_path = "/error-pages/500.html"
   }
 }
 
