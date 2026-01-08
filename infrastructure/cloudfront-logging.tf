@@ -3,6 +3,22 @@ resource "aws_s3_bucket" "cloudfront_ops" {
   bucket = "${var.name}-cloudfront-ops-${random_string.bucket_suffix.result}"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls
+resource "aws_s3_bucket_ownership_controls" "cloudfront_ops" {
+  bucket = aws_s3_bucket.cloudfront_ops.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl
+resource "aws_s3_bucket_acl" "cloudfront_ops" {
+  depends_on = [aws_s3_bucket_ownership_controls.cloudfront_ops]
+  bucket     = aws_s3_bucket.cloudfront_ops.id
+  acl        = "private"
+}
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
 resource "aws_s3_bucket_public_access_block" "cloudfront_ops" {
   bucket = aws_s3_bucket.cloudfront_ops.id
