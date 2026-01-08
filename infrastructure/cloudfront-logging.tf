@@ -14,9 +14,12 @@ resource "aws_s3_bucket_ownership_controls" "cloudfront_ops" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl
 resource "aws_s3_bucket_acl" "cloudfront_ops" {
-  depends_on = [aws_s3_bucket_ownership_controls.cloudfront_ops]
-  bucket     = aws_s3_bucket.cloudfront_ops.id
-  acl        = "private"
+  depends_on = [
+    aws_s3_bucket_ownership_controls.cloudfront_ops,
+    aws_s3_bucket_public_access_block.cloudfront_ops
+  ]
+  bucket = aws_s3_bucket.cloudfront_ops.id
+  acl    = "private"
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
