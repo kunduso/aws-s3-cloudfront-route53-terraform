@@ -133,6 +133,22 @@ data "aws_iam_policy_document" "cloudfront_ops_bucket_policy" {
       values   = [aws_cloudfront_distribution.website.arn]
     }
   }
+
+  statement {
+    sid    = "AllowCloudFrontLogging"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.cloudfront_ops.arn}/logs/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.website.arn]
+    }
+  }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy
