@@ -7,6 +7,15 @@ resource "aws_cloudfront_origin_access_control" "website" {
   signing_protocol                  = "sigv4"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_origin_access_control
+resource "aws_cloudfront_origin_access_control" "error_pages" {
+  name                              = "${var.name}-error-pages-oac"
+  description                       = "OAC for ${var.name} error pages S3 bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution
 resource "aws_cloudfront_distribution" "website" {
   origin {
@@ -18,14 +27,14 @@ resource "aws_cloudfront_distribution" "website" {
   # Error pages origin
   origin {
     domain_name              = aws_s3_bucket.cloudfront_ops.bucket_regional_domain_name
-    origin_access_control_id = aws_cloudfront_origin_access_control.website.id
+    origin_access_control_id = aws_cloudfront_origin_access_control.error_pages.id
     origin_id                = "S3-${aws_s3_bucket.cloudfront_ops.bucket}"
-    origin_path              = "/error-pages"
   }
 
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
+  aliases             = [var.domain_name, "www.${var.domain_name}"]
 
   # CloudFront access logging
   logging_config {
@@ -118,6 +127,22 @@ data "aws_iam_policy_document" "cloudfront_ops_bucket_policy" {
     }
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.cloudfront_ops.arn}/error-pages/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.website.arn]
+    }
+  }
+
+  statement {
+    sid    = "AllowCloudFrontLogging"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.cloudfront_ops.arn}/logs/*"]
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
