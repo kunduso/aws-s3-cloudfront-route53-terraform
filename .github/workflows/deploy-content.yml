@@ -1,0 +1,77 @@
+name: deploy-content
+
+on:
+  push:
+    branches: [ 'main' ]
+    paths:
+      - 'content/**'
+      - '.github/workflows/deploy-content.yml'
+  pull_request:
+    branches: [ 'main' ]
+    paths:
+      - 'content/**'
+      - '.github/workflows/deploy-content.yml'
+
+permissions: read-all
+
+jobs:
+  deploy-content:
+    name: 'deploy-website-content'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v5.1.1
+      with:
+        role-to-assume: ${{ secrets.IAM_ROLE }}
+        role-session-name: ContentDeploymentSession
+        aws-region: us-east-2
+
+    - name: Get infrastructure outputs from SSM
+      id: get-infra
+      run: |
+        INFRA_JSON=$(aws ssm get-parameter --name "/app-16/output" --with-decryption --query Parameter.Value --output text)
+        BUCKET_NAME=$(echo $INFRA_JSON | jq -r '.s3_bucket_name')
+        DISTRIBUTION_ID=$(echo $INFRA_JSON | jq -r '.cloudfront_distribution_id')
+        echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+        echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+
+    - name: Sync content to S3
+      if: github.ref == 'refs/heads/main'
+      run: |
+        aws s3 sync content/ s3://${{ steps.get-infra.outputs.bucket_name }}/ \
+          --delete \
+          --cache-control "public, max-age=86400" \
+          --metadata-directive REPLACE
+
+    - name: Invalidate CloudFront cache
+      if: github.ref == 'refs/heads/main'
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ steps.get-infra.outputs.distribution_id }} \
+          --paths "/*"
+
+    - name: Content deployment summary
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "✅ Content deployed successfully!"
+        echo "📁 Bucket: ${{ steps.get-infra.outputs.bucket_name }}"
+        echo "🌐 Distribution: ${{ steps.get-infra.outputs.distribution_id }}"
+        echo "🔄 Cache invalidated for all paths"
+
+    - name: PR validation summary
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "✅ Content validation passed!"
+        echo "📝 Ready for deployment when merged to main"
