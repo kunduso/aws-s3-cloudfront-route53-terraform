@@ -1,9 +1,12 @@
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity
 data "aws_caller_identity" "current" {}
 
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone
 resource "aws_route53_zone" "main" {
   name = var.domain_name
+  #checkov:skip=CKV2_AWS_39:Ensure Domain Name System (DNS) query logging is enabled for Amazon Route 53 hosted zones
+  #skip-reason: DNS query logging provides no security benefit for static portfolio website. Adds unnecessary cost.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key
