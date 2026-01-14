@@ -65,6 +65,20 @@ data "aws_iam_policy_document" "s3_key_policy" {
       identifiers = ["s3.amazonaws.com"]
     }
   }
+
+  statement {
+    sid    = "Allow CloudFront to use the key"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey"
+    ]
+    resources = [aws_kms_key.s3_key.arn]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+  }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
