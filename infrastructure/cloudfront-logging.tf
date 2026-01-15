@@ -1,6 +1,7 @@
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
 resource "aws_s3_bucket" "cloudfront_ops" {
-  bucket = "${var.name}-cloudfront-ops-${random_string.bucket_suffix.result}"
+  bucket        = "${var.name}-cloudfront-ops-${random_string.bucket_suffix.result}"
+  force_destroy = true
 
   #checkov:skip=CKV_AWS_18:Ensure the S3 bucket has access logging enabled
   #skip-reason: Logging bucket cannot log to itself (infinite loop). No secondary logging bucket needed for CloudFront logs.
@@ -84,6 +85,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_ops" {
       prefix = "error-pages/"
     }
 
-    # Keep error pages indefinitely
+    # Keep error pages indefinitely, but clean up incomplete uploads
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
