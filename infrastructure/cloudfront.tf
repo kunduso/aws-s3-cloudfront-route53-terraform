@@ -95,6 +95,18 @@ resource "aws_cloudfront_distribution" "website" {
     response_code      = 500
     response_page_path = "/error-pages/500.html"
   }
+
+  #checkov:skip=CKV2_AWS_47:Ensure AWS CloudFront attached WAFv2 WebACL is configured with AMR for Log4j Vulnerability
+  #skip-reason: Static HTML content has no Log4j vulnerability. WAF adds unnecessary cost for static website.
+
+  #checkov:skip=CKV_AWS_68:CloudFront Distribution should have WAF enabled
+  #skip-reason: Static website with no dynamic content or user input does not require WAF protection.
+
+  #checkov:skip=CKV_AWS_310:Ensure CloudFront distributions should have origin failover configured
+  #skip-reason: Single S3 origin is sufficient for static website.
+
+  #checkov:skip=CKV_AWS_374:Ensure AWS CloudFront web distribution has geo restriction enabled
+  #skip-reason: Static website should be globally accessible without geographic restrictions.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
