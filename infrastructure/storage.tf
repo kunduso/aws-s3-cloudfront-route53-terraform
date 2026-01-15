@@ -65,11 +65,37 @@ data "aws_iam_policy_document" "s3_key_policy" {
       identifiers = ["s3.amazonaws.com"]
     }
   }
+
+  statement {
+    sid    = "Allow CloudFront to use the key"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey"
+    ]
+    resources = [aws_kms_key.s3_key.arn]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+  }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
 resource "aws_s3_bucket" "website" {
-  bucket = "${var.name}-static-website-${random_string.bucket_suffix.result}"
+  bucket        = "${var.name}-static-website-${random_string.bucket_suffix.result}"
+  force_destroy = true
+
+  #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
+  #skip-reason: No event-driven workflows required for static website hosting.
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_logging
+resource "aws_s3_bucket_logging" "website" {
+  bucket = aws_s3_bucket.website.id
+
+  target_bucket = aws_s3_bucket.cloudfront_ops.id
+  target_prefix = "access_logs/"
 }
 
 # https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string
