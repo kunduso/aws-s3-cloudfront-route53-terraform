@@ -20,6 +20,9 @@ resource "aws_s3_bucket_ownership_controls" "cloudfront_ops" {
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
+
+  #checkov:skip=CKV2_AWS_65:Ensure access control lists for S3 buckets are disabled
+  #skip-reason: CloudFront logging requires ACL access. BucketOwnerPreferred provides security while enabling logging.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl
@@ -40,6 +43,12 @@ resource "aws_s3_bucket_public_access_block" "cloudfront_ops" {
   block_public_policy     = true
   ignore_public_acls      = false
   restrict_public_buckets = true
+
+  #checkov:skip=CKV_AWS_53:Ensure S3 bucket has block public ACLS enabled
+  #skip-reason: CloudFront logging requires ACL access. Security maintained through bucket policies.
+
+  #checkov:skip=CKV_AWS_55:Ensure S3 bucket has ignore public ACLs enabled
+  #skip-reason: CloudFront logging requires ACL access. Security maintained through bucket policies.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning

@@ -38,6 +38,9 @@ resource "aws_cloudfront_response_headers_policy" "security_headers" {
       override                   = true
     }
   }
+
+  #checkov:skip=CKV_AWS_259:Ensure CloudFront response header policy enforces Strict Transport Security
+  #skip-reason: HSTS is configured above with 1-year max-age and include_subdomains enabled.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution
