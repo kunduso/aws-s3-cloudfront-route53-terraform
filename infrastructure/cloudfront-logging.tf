@@ -8,6 +8,9 @@ resource "aws_s3_bucket" "cloudfront_ops" {
 
   #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
   #skip-reason: No event-driven workflows required for CloudFront logging and error pages.
+  
+  #checkov:skip=CKV_AWS_144:Ensure that S3 bucket has cross-region replication enabled
+  #skip-reason: Cross-region replication not required for CloudFront logging bucket. Single region sufficient for log storage.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls
