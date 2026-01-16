@@ -11,6 +11,9 @@ resource "aws_s3_bucket" "cloudfront_ops" {
 
   #checkov:skip=CKV_AWS_144:Ensure that S3 bucket has cross-region replication enabled
   #skip-reason: Cross-region replication not required for CloudFront logging bucket. Single region sufficient for log storage.
+
+  #checkov:skip=CKV2_AWS_6:Ensure that S3 bucket has a Public Access block
+  #skip-reason: Public access block is configured separately. CloudFront logging requires specific ACL settings.
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls
