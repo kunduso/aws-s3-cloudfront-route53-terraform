@@ -18,20 +18,27 @@ resource "aws_s3_bucket_ownership_controls" "cloudfront_ops" {
   bucket = aws_s3_bucket.cloudfront_ops.id
 
   rule {
-    object_ownership = "BucketOwnerEnforced"
+    object_ownership = "BucketOwnerPreferred"
   }
+}
 
-  #checkov:skip=CKV2_AWS_65:Ensure access control lists for S3 buckets are disabled
-  #skip-reason: BucketOwnerEnforced disables ACLs. Checkov may not recognize this configuration.
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl
+resource "aws_s3_bucket_acl" "cloudfront_ops" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.cloudfront_ops,
+    aws_s3_bucket_public_access_block.cloudfront_ops
+  ]
+  bucket = aws_s3_bucket.cloudfront_ops.id
+  acl    = "private"
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
 resource "aws_s3_bucket_public_access_block" "cloudfront_ops" {
   bucket = aws_s3_bucket.cloudfront_ops.id
 
-  block_public_acls       = true
+  block_public_acls       = false
   block_public_policy     = true
-  ignore_public_acls      = true
+  ignore_public_acls      = false
   restrict_public_buckets = true
 }
 
