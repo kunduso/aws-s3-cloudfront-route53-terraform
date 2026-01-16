@@ -8,7 +8,7 @@ resource "aws_s3_bucket" "cloudfront_ops" {
 
   #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
   #skip-reason: No event-driven workflows required for CloudFront logging and error pages.
-  
+
   #checkov:skip=CKV_AWS_144:Ensure that S3 bucket has cross-region replication enabled
   #skip-reason: Cross-region replication not required for CloudFront logging bucket. Single region sufficient for log storage.
 }
@@ -40,6 +40,14 @@ resource "aws_s3_bucket_public_access_block" "cloudfront_ops" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
+resource "aws_s3_bucket_versioning" "cloudfront_ops" {
+  bucket = aws_s3_bucket.cloudfront_ops.id
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
