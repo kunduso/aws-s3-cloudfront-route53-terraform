@@ -44,7 +44,7 @@ resource "aws_cloudfront_distribution" "website" {
   }
 
   default_cache_behavior {
-    allowed_methods          = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    allowed_methods          = ["GET", "HEAD"]
     cached_methods           = ["GET", "HEAD"]
     target_origin_id         = "S3-${aws_s3_bucket.website.bucket}"
     compress                 = true
