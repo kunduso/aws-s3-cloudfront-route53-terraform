@@ -11,12 +11,6 @@ resource "aws_kms_alias" "s3_key_alias" {
   target_key_id = aws_kms_key.s3_key.key_id
 }
 
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy
-resource "aws_kms_key_policy" "s3_key" {
-  key_id = aws_kms_key.s3_key.id
-  policy = data.aws_iam_policy_document.s3_key_policy.json
-}
-
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
 data "aws_iam_policy_document" "s3_key_policy" {
   statement {
@@ -81,13 +75,10 @@ data "aws_iam_policy_document" "s3_key_policy" {
   }
 }
 
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
-resource "aws_s3_bucket" "website" {
-  bucket        = "${var.name}-static-website-${random_string.bucket_suffix.result}"
-  force_destroy = true
-
-  #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
-  #skip-reason: No event-driven workflows required for static website hosting.
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy
+resource "aws_kms_key_policy" "s3_key" {
+  key_id = aws_kms_key.s3_key.id
+  policy = data.aws_iam_policy_document.s3_key_policy.json
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_logging
@@ -104,6 +95,15 @@ resource "random_string" "bucket_suffix" {
   special = false
   upper   = false
 }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
+resource "aws_s3_bucket" "website" {
+  bucket        = "${var.name}-static-website-${random_string.bucket_suffix.result}"
+  force_destroy = true
+
+  #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
+  #skip-reason: No event-driven workflows required for static website hosting.
+}
+
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration
 resource "aws_s3_bucket_server_side_encryption_configuration" "website" {
@@ -156,18 +156,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
   rule {
     id     = "manage_old_versions"
     status = "Enabled"
-
-    # Cost optimization transitions - COMMENTED OUT for simple static websites
-    # Uncomment these for enterprise/high-traffic sites to reduce storage costs
-    # noncurrent_version_transition {
-    #   noncurrent_days = 7
-    #   storage_class   = "STANDARD_IA"
-    # }
-    #
-    # noncurrent_version_transition {
-    #   noncurrent_days = 30
-    #   storage_class   = "GLACIER"
-    # }
 
     # Keep old versions for 90 days for rollback capability
     noncurrent_version_expiration {
