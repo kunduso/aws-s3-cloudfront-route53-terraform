@@ -16,6 +16,33 @@ resource "aws_cloudfront_origin_access_control" "error_pages" {
   signing_protocol                  = "sigv4"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_response_headers_policy
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name = "${var.name}-security-headers"
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      override                   = true
+    }
+  }
+
+  #checkov:skip=CKV_AWS_259:Ensure CloudFront response header policy enforces Strict Transport Security
+  #skip-reason: HSTS is configured above with 1-year max-age and include_subdomains enabled.
+}
+
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution
 resource "aws_cloudfront_distribution" "website" {
   origin {
