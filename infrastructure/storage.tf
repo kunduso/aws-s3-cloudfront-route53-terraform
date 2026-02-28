@@ -102,6 +102,9 @@ resource "aws_s3_bucket" "website" {
 
   #checkov:skip=CKV2_AWS_62:Ensure S3 buckets should have event notifications enabled
   #skip-reason: No event-driven workflows required for static website hosting.
+
+  #checkov:skip=CKV_AWS_144:Ensure that S3 bucket has cross-region replication enabled
+  #skip-reason: Disabling cross-region replication for Static Content hosting.
 }
 
 
